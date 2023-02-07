@@ -61,3 +61,4 @@ build
  roster/introml.xlsx
  x
 data/all_text_aae.csv
+*.csv
