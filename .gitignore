@@ -8,7 +8,8 @@ build
 *.ipynb_checkpoints/*
 *checkpoint*
 /tests/tmp/*
-
+*.xml
+*.zip
 *.pkl
 
 # IDEs and editors
@@ -61,4 +62,6 @@ build
  roster/introml.xlsx
  x
 data/all_text_aae.csv
-*.csv
+data/*.csv
+data/*
+outputcsv/*
