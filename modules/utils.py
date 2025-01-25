@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import datetime
 import xml.etree.ElementTree as ET
 import zipfile
-
+from tldextract import extract
 
 def process_zip_files(base_path, output_path, min_years):
     """
@@ -70,6 +70,81 @@ def process_zip_files(base_path, output_path, min_years):
     df.reset_index(drop=True, inplace=True)
     return df
 
+    # Helper function to extract the main domain from an email address
+    # Helper function to extract the main domain from an email address
+def extract_main_domain(email):
+    if email and '@' in email:
+        domain_parts = email.split('@')[1].split('.')  # Split by '.'
+        if len(domain_parts) > 2:
+            # Take only the last two parts (e.g., ['ucsd', 'edu'])
+            return '.'.join(domain_parts[-2:])
+        return '.'.join(domain_parts)  # Return full domain if it's already simple
+    return None
+
+
+
+
+def extract_investigators(root, data):
+    """
+    Extracts investigator data from an XML root and appends it to a list
+    with an ordered investigator number (PI#), total investigators count,
+    institution domain, collaborative institutions count, 
+    and totals for PI's university and others.
+    
+    Args:
+        root: XML root element.
+        data: A dictionary containing the AwardID.
+    
+    Returns:
+        A list of dictionaries containing investigator data and collaboration statistics.
+    """
+    investigators = []
+    investigator_elements = root.findall('.//Investigator')
+    total_investigators = len(investigator_elements)  # Total investigators count
+
+    # Extract domains and calculate collaboration statistics
+    domains = []
+    for investigator in investigator_elements:
+        email = investigator.findtext('EmailAddress')
+        main_domain = extract_main_domain(email)
+        domains.append(main_domain)
+
+    unique_domains = set(filter(None, domains))  # Unique institution domains, ignoring None
+    pi_domain = domains[0] if domains else None  # Domain of the first investigator (PI)
+    
+    total_at_pi_university = domains.count(pi_domain)
+    total_outside_pi_university = total_investigators - total_at_pi_university
+
+    for idx, investigator in enumerate(investigator_elements, start=1):
+        email = investigator.findtext('EmailAddress')
+        institution_domain = extract_main_domain(email)
+        
+        investigator_data = {
+            'PI#': idx,  # Ordered investigator number
+            'TotalInvestigators': total_investigators,  # Total investigators
+            'AwardID': data['AwardID'],  # Add AwardID to each investigator record
+            'FirstName': investigator.findtext('FirstName'),
+            'LastName': investigator.findtext('LastName'),
+            'MiddleInitial': investigator.findtext('PI_MID_INIT'),
+            'Suffix': investigator.findtext('PI_SUFX_NAME'),
+            'FullName': investigator.findtext('PI_FULL_NAME'),
+            'Email': email,
+            'InstitutionDomain': institution_domain,  # Extracted main domain
+            'NSFID': investigator.findtext('NSF_ID'),
+            'StartDate': investigator.findtext('StartDate'),
+            'EndDate': investigator.findtext('EndDate'),
+            'RoleCode': investigator.findtext('RoleCode'),
+            'TotalCollaborativeInstitutions': len(unique_domains),  # Unique institutions
+            'TotalAtPIUniversity': total_at_pi_university,  # Count at PI's university
+            'TotalOutsidePIUniversity': total_outside_pi_university,  # Count outside PI's university
+        }
+        investigators.append(investigator_data)
+    
+    return investigators
+
+
+
+
 def parse_xml(file_path):
     try:
         tree = ET.parse(file_path)
@@ -91,24 +166,25 @@ def parse_xml(file_path):
             'Division_Abbreviation': root.findtext('.//Division/Abbreviation'),
             'Division_LongName': root.findtext('.//Division/LongName'),
         }
+        investigators = extract_investigators(root, data)
 
         # Process all investigators
-        investigators = []
-        for investigator in root.findall('.//Investigator'):
-            investigator_data = {
-                'AwardID': data['AwardID'],  # Add AwardID to each investigator record
-                'FirstName': investigator.findtext('FirstName'),
-                'LastName': investigator.findtext('LastName'),
-                'MiddleInitial': investigator.findtext('PI_MID_INIT'),
-                'Suffix': investigator.findtext('PI_SUFX_NAME'),
-                'FullName': investigator.findtext('PI_FULL_NAME'),
-                'Email': investigator.findtext('EmailAddress'),
-                'NSFID': investigator.findtext('NSF_ID'),
-                'StartDate': investigator.findtext('StartDate'),
-                'EndDate': investigator.findtext('EndDate'),
-                'RoleCode': investigator.findtext('RoleCode'),
-            }
-            investigators.append(investigator_data)
+        # investigators = []
+        # for investigator in root.findall('.//Investigator'):
+        #     investigator_data = {
+        #         'AwardID': data['AwardID'],  # Add AwardID to each investigator record
+        #         'FirstName': investigator.findtext('FirstName'),
+        #         'LastName': investigator.findtext('LastName'),
+        #         'MiddleInitial': investigator.findtext('PI_MID_INIT'),
+        #         'Suffix': investigator.findtext('PI_SUFX_NAME'),
+        #         'FullName': investigator.findtext('PI_FULL_NAME'),
+        #         'Email': investigator.findtext('EmailAddress'),
+        #         'NSFID': investigator.findtext('NSF_ID'),
+        #         'StartDate': investigator.findtext('StartDate'),
+        #         'EndDate': investigator.findtext('EndDate'),
+        #         'RoleCode': investigator.findtext('RoleCode'),
+        #     }
+        #     investigators.append(investigator_data)
 
         # Convert the main data (grant data) into a DataFrame
         df_grant = pd.DataFrame([data])
@@ -217,10 +293,15 @@ def process_dataframe(df, root_folder, output_csv, output_pkl):
     # Combine all grant data and investigator data across all years
     final_data = pd.concat(data_list, ignore_index=True) if data_list else pd.DataFrame()
     final_invest = pd.concat(invest_list, ignore_index=True) if invest_list else pd.DataFrame()
-
+    df.to_csv(output_csv / 'final' / 'df_final.csv', index=False)
+    df.to_pickle(output_pkl / 'final' / 'df_final.pkl')
+    final_data.to_csv(output_csv / 'final' / 'grants_final.csv', index=False)
+    final_data.to_pickle(output_pkl / 'final' / 'grants_final.pkl')
+    final_invest.to_csv(output_csv / 'final' / 'invest_final.csv', index=False)
+    final_invest.to_pickle(output_pkl / 'final' / 'invest_final.pkl')
     return df, final_data, final_invest
 
-def create_grant_features(df, title_column='AwardTitle'):
+def create_grant_features(df, icorps, title_column='AwardTitle'):
     """
     Create features for SBIR and STTR awards in a grants DataFrame.
 
@@ -242,6 +323,30 @@ def create_grant_features(df, title_column='AwardTitle'):
     df['sttr'] = df[title_column].str.contains(r'\bSTTR\b', case=False, na=False).astype(int)
     df['sttr_1'] = df[title_column].str.contains(r'\bSTTR Phase I:\b', case=False, na=False).astype(int)
     df['sttr_2'] = df[title_column].str.contains(r'\bSTTR Phase II:\b', case=False, na=False).astype(int)
+    df['AwardID'] = df['AwardID'].astype(str)
+    #merget df with icorps by AwardID
+    df = df.merge(icorps, on='AwardID', how='left')
+    #fill NaNs with zeros['teams', 'hub', 'site', 'node']
+    df['teams'] = df['teams'].fillna(0).astype(int)
+    df['hub'] = df['hub'].fillna(0).astype(int)
+    df['site'] = df['site'].fillna(0).astype(int)
+    df['node'] = df['node'].fillna(0).astype(int)
+
+
+    return df
+
+def create_invest_features(df, title_column='AwardTitle'):
+    """
+    Create features for SBIR and STTR awards in a grants DataFrame.
+
+    Parameters:
+        df (pd.DataFrame): The input DataFrame containing grant data.
+        title_column (str): The column name containing the award titles.
+
+    Returns:
+        pd.DataFrame: The DataFrame with new feature columns added.
+    """
+    # Ensure the title column exists in the DataFrame
 
     return df
 
@@ -267,3 +372,47 @@ def create_and_sum_icorps_features(df, columns):
     df['total_icorps'] = df[columns].sum(axis=1)
 
     return df
+
+
+def process_and_merge_grants(grants, other_df, key='AwardID', columns_to_clean=None):
+    """
+    Merges the grants dataframe with another dataframe on a specified key,
+    fills NaN values, and ensures specified columns are cleaned and converted to integers.
+
+    Parameters:
+        grants (pd.DataFrame): The main grants dataframe.
+        other_df (pd.DataFrame): The dataframe to merge with grants.
+        key (str): The key column to merge on (default is 'AwardID').
+        columns_to_clean (list): List of column names to clean in the other dataframe.
+
+    Returns:
+        pd.DataFrame: Updated grants dataframe after merging and cleaning.
+    """
+    if columns_to_clean is None:
+        columns_to_clean = []
+
+    # Ensure the key column is of type string in both dataframes
+    other_df[key] = other_df[key].astype(str)
+    grants[key] = grants[key].astype(str)
+
+    # Merge the dataframes
+    fields_to_inc=[key]+columns_to_clean
+    print("merging dataframes", grants.shape, other_df.shape)
+    merged_df = grants.merge(other_df[fields_to_inc], on=key, how='left')
+    print("merged", merged_df.shape)
+    # Clean and process specified columns
+    for col in columns_to_clean:
+        if col in merged_df.columns:
+            # Fill NaN values with 0
+            merged_df[col] = merged_df[col].fillna(0)
+
+            # Ensure all values are integers
+            merged_df[col] = merged_df[col].apply(
+                lambda x: int(str(x).replace(r'\D', '')) if str(x).isdigit() else 0
+            )
+            merged_df[col]=merged_df[col].astype(int)
+
+    # Ensure specified columns are of integer type
+    #merged_df[columns_to_clean] = merged_df[columns_to_clean].astype(int)
+
+    return merged_df
