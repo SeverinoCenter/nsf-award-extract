@@ -165,6 +165,56 @@ def parse_xml(file_path):
             'Directorate_LongName': root.findtext('.//Directorate/LongName'),
             'Division_Abbreviation': root.findtext('.//Division/Abbreviation'),
             'Division_LongName': root.findtext('.//Division/LongName'),
+            'ProgramOfficer_Name': root.findtext('.//ProgramOfficer/SignBlockName'),
+            'ProgramOfficer_Email': root.findtext('.//ProgramOfficer/PO_EMAI'),
+            'ProgramOfficer_Phone': root.findtext('.//ProgramOfficer/PO_PHON'),
+            'AbstractNarration': root.findtext('.//AbstractNarration'),
+            'MinAmdLetterDate': root.findtext('.//MinAmdLetterDate'),
+            'MaxAmdLetterDate': root.findtext('.//MaxAmdLetterDate'),
+            'ARRAAmount': root.findtext('.//ARRAAmount'),
+            'TRAN_TYPE': root.findtext('.//TRAN_TYPE'),
+            'CFDA_NUM': root.findtext('.//CFDA_NUM'),
+            'NSF_PAR_USE_FLAG': root.findtext('.//NSF_PAR_USE_FLAG'),
+            'FUND_AGCY_CODE': root.findtext('.//FUND_AGCY_CODE'),
+            'AWDG_AGCY_CODE': root.findtext('.//AWDG_AGCY_CODE'),
+            'Institution_Name': root.findtext('.//Institution/Name'),
+            'Institution_City': root.findtext('.//Institution/CityName'),
+            'Institution_State': root.findtext('.//Institution/StateName'),
+            'Institution_Zip': root.findtext('.//Institution/ZipCode'),
+            'Institution_Country': root.findtext('.//Institution/CountryName'),
+            'Institution_Phone': root.findtext('.//Institution/PhoneNumber'),
+            'Institution_StreetAddress1': root.findtext('.//Institution/StreetAddress'),
+            'Institution_StreetAddress2': root.findtext('.//Institution/StreetAddress2'),
+            'Institution_CongressDistrict': root.findtext('.//Institution/CONGRESSDISTRICT'),
+            'Institution_CongressDistrictOrg': root.findtext('.//Institution/CONGRESS_DISTRICT_ORG'),
+            'Institution_OrgUEINum': root.findtext('.//Institution/ORG_UEI_NUM'),
+            'Institution_OrgLglBusName': root.findtext('.//Institution/ORG_LGL_BUS_NAME'),
+            'Performance_Institution_Name': root.findtext('.//Performance_Institution/Name'),
+            'Performance_Institution_City': root.findtext('.//Performance_Institution/CityName'),
+            'Performance_Institution_State': root.findtext('.//Performance_Institution/StateName'),
+            'Performance_Institution_Zip': root.findtext('.//Performance_Institution/ZipCode'),
+            'Performance_Institution_StreetAddress': root.findtext('.//Performance_Institution/StreetAddress'),
+            'Performance_Institution_CountryCode': root.findtext('.//Performance_Institution/CountryCode'),
+            'Performance_Institution_Country': root.findtext('.//Performance_Institution/CountryName'),
+            'Performance_Institution_State': root.findtext('.//Performance_Institution/StateName'),
+            'Performance_Institution_CountryFlag': root.findtext('.//Performance_Institution/CountryFlag'),
+            'Performance_Institution_CongressDistrict': root.findtext('.//Performance_Institution/CONGRESSDISTRICT'),
+            'Performance_Institution_CongressDistrictPerf': root.findtext('.//Performance_Institution/CONGRESS_DISTRICT_PERF'),
+            'ProgramElement1_Code': root.findtext('.//ProgramElement[1]/Code'),
+            'ProgramElement1_Text': root.findtext('.//ProgramElement[1]/Text'),
+            'ProgramElement2_Code': root.findtext('.//ProgramElement[2]/Code'),
+            'ProgramElement2_Text': root.findtext('.//ProgramElement[2]/Text'),
+            'ProgramElement3_Code': root.findtext('.//ProgramElement[3]/Code'),
+            'ProgramElement3_Text': root.findtext('.//ProgramElement[3]/Text'),
+            'ProgramReference_Code': root.findtext('.//ProgramReference/Code'),
+            'ProgramReference_Text': root.findtext('.//ProgramReference/Text'),
+            'Appropriation_Code': root.findtext('.//Appropriation/Code'),
+            'Appropriation_Name': root.findtext('.//Appropriation/Name'),
+            'Appropriation_SymbolID': root.findtext('.//Appropriation/APP_SYMB_ID'),
+            'Fund_Code': root.findtext('.//Fund/Code'),
+            'Fund_Name': root.findtext('.//Fund/Name'),
+            'Fund_SymbolID': root.findtext('.//Fund/FUND_SYMB_ID'),
+            'Fund_Obligation': root.findtext('.//FUND_OBLG')
         }
         investigators = extract_investigators(root, data)
 
@@ -416,3 +466,70 @@ def process_and_merge_grants(grants, other_df, key='AwardID', columns_to_clean=N
     #merged_df[columns_to_clean] = merged_df[columns_to_clean].astype(int)
 
     return merged_df
+
+
+
+
+# Define the function to apply corrections
+def apply_corrections(row, correction_dict):
+    # Normalize the case for the current row, handling missing values
+    row['Institution_City_C'] = str(row['Institution_City']).lower() if pd.notnull(row['Institution_City']) else None
+    row['Institution_State_C'] = str(row['Institution_State']).lower() if pd.notnull(row['Institution_State']) else None
+
+    # Create a key to look up the correction
+    key = (row['Institution_Name'], row['Institution_City_C'], row['Institution_State_C'])
+    if key in correction_dict:
+        corrected_data = correction_dict[key]
+        row['Institution_City_C'] = corrected_data['Corrected_City']
+        row['Institution_State_C'] = corrected_data['Corrected_State']
+    return row
+
+
+# Function to fill missing values using the most common (mode) value within groups defined by Institution_OrgUEINum
+def fill_missing_values(df, columns):
+    """
+    Fills missing values in the specified columns with the most common value 
+    within groups based on Institution_OrgUEINum.
+   
+    Args:
+        df (pd.DataFrame): The DataFrame containing the data.
+        columns (list): List of column names to process.
+
+    Returns:
+        pd.DataFrame: The DataFrame with missing values filled.
+    """
+    for column in columns:
+        #if there isn't column+'_C' create it
+        if column+'_C' not in df.columns:
+            df[column+'_C'] = df[column]
+        # Compute the most common value (mode) for each group
+        most_common_values = df.groupby('Institution_OrgUEINum')[column].transform(
+            lambda x: x.mode().iloc[0] if not x.mode().empty else x
+        )
+        # Fill missing values in the column with the computed most common values
+        df.loc[df[column+'_C'].isna(), column+'_C'] = most_common_values
+    return df
+
+# Function to fill missing values using the most common (mode) value within groups defined by Institution_Name
+def fill_missing_values_inst(df, columns):
+    """
+    Fills missing values in the specified columns with the most common value 
+    within groups based on Institution_Name.
+
+    Args:
+        df (pd.DataFrame): The DataFrame containing the data.
+        columns (list): List of column names to process.
+
+    Returns:
+        pd.DataFrame: The DataFrame with missing values filled.
+    """
+    for column in columns:
+        if column+'_C' not in df.columns:
+            df[column+'_C'] = df[column]
+        # Compute the most common value (mode) for each group
+        most_common_values = df.groupby('Institution_Name')[column+'_C'].transform(
+            lambda x: x.mode().iloc[0] if not x.mode().empty else x
+        )
+        # Fill missing values in the column with the computed most common values
+        df.loc[df[column+'_C'].isna(), column+'_C'] = most_common_values
+    return df
