@@ -1,0 +1,26 @@
+file,year,errors,xmlfiles,df_rows,xml_errors,xml_error_list,time_parsed
+Data/NSF-Downloads-8july2024/2024.zip,2024,True,8199,8199,0,[],2025-01-20 14:40:26.892142
+Data/NSF-Downloads-8july2024/2023.zip,2023,True,11130,11130,0,[],2025-01-20 14:40:34.954554
+Data/NSF-Downloads-8july2024/2022.zip,2022,True,11472,11471,1,[PosixPath('temp/2022/49100422C0020.xml')],2025-01-20 14:40:42.969165
+Data/NSF-Downloads-8july2024/2021.zip,2021,True,12652,12652,0,[],2025-01-20 14:40:51.825242
+Data/NSF-Downloads-8july2024/2020.zip,2020,True,13300,13300,0,[],2025-01-20 14:41:01.387771
+Data/NSF-Downloads-8july2024/2019.zip,2019,True,13043,13043,0,[],2025-01-20 14:41:11.547159
+Data/NSF-Downloads-8july2024/2018.zip,2018,True,12235,12235,0,[],2025-01-20 14:41:20.727974
+Data/NSF-Downloads-8july2024/2017.zip,2017,True,12289,12289,0,[],2025-01-20 14:41:29.909602
+Data/NSF-Downloads-8july2024/2016.zip,2016,True,12594,12594,0,[],2025-01-20 14:41:40.477871
+Data/NSF-Downloads-8july2024/2015.zip,2015,True,13072,13072,0,[],2025-01-20 14:41:50.074970
+Data/NSF-Downloads-8july2024/2014.zip,2014,True,12109,12109,0,[],2025-01-20 14:41:58.959041
+Data/NSF-Downloads-8july2024/2013.zip,2013,True,11502,11502,0,[],2025-01-20 14:42:07.422153
+Data/NSF-Downloads-8july2024/2012.zip,2012,True,12165,12164,1,[PosixPath('temp/2012/1201835.xml')],2025-01-20 14:42:16.592702
+Data/NSF-Downloads-8july2024/2011.zip,2011,True,11652,11648,4,"[PosixPath('temp/2011/1147930.xml'), PosixPath('temp/2011/1127340.xml'), PosixPath('temp/2011/1117597.xml'), PosixPath('temp/2011/1116081.xml')]",2025-01-20 14:42:25.862997
+Data/NSF-Downloads-8july2024/2010.zip,2010,True,13094,13089,5,"[PosixPath('temp/2010/1066456.xml'), PosixPath('temp/2010/1028076.xml'), PosixPath('temp/2010/1028510.xml'), PosixPath('temp/2010/1038058.xml'), PosixPath('temp/2010/1022648.xml')]",2025-01-20 14:42:35.716885
+Data/NSF-Downloads-8july2024/2009.zip,2009,True,15430,15429,1,[PosixPath('temp/2009/0909203.xml')],2025-01-20 14:42:46.894633
+Data/NSF-Downloads-8july2024/2008.zip,2008,True,12612,12603,9,"[PosixPath('temp/2008/0834451.xml'), PosixPath('temp/2008/0848615.xml'), PosixPath('temp/2008/0833162.xml'), PosixPath('temp/2008/0810982.xml'), PosixPath('temp/2008/0803440.xml'), PosixPath('temp/2008/0831791.xml'), PosixPath('temp/2008/0826158.xml'), PosixPath('temp/2008/0833126.xml'), PosixPath('temp/2008/0840444.xml')]",2025-01-20 14:42:56.416240
+Data/NSF-Downloads-8july2024/2007.zip,2007,True,12223,12222,1,[PosixPath('temp/2007/0722887.xml')],2025-01-20 14:43:05.208167
+Data/NSF-Downloads-8july2024/2006.zip,2006,True,11063,11062,1,[PosixPath('temp/2006/0651627.xml')],2025-01-20 14:43:13.229464
+Data/NSF-Downloads-8july2024/2005.zip,2005,True,10730,10728,2,"[PosixPath('temp/2005/0506732.xml'), PosixPath('temp/2005/0507295.xml')]",2025-01-20 14:43:20.637136
+Data/NSF-Downloads-8july2024/2004.zip,2004,True,10721,10719,2,"[PosixPath('temp/2004/0443803.xml'), PosixPath('temp/2004/0435393.xml')]",2025-01-20 14:43:27.813912
+Data/NSF-Downloads-8july2024/2003.zip,2003,True,11556,11555,1,[PosixPath('temp/2003/0342388.xml')],2025-01-20 14:43:35.401614
+Data/NSF-Downloads-8july2024/2002.zip,2002,True,10955,10953,2,"[PosixPath('temp/2002/0231051.xml'), PosixPath('temp/2002/0225630.xml')]",2025-01-20 14:43:42.850563
+Data/NSF-Downloads-8july2024/2001.zip,2001,True,9848,9848,0,[],2025-01-20 14:43:49.509336
+Data/NSF-Downloads-8july2024/2000.zip,2000,True,10370,10369,1,[PosixPath('temp/2000/0098579.xml')],2025-01-20 14:43:56.489119
